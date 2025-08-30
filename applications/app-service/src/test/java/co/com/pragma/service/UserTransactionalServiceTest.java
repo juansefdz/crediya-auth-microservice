@@ -2,16 +2,12 @@ package co.com.pragma.service;
 
 import co.com.pragma.api.dto.UserRequestDTO;
 import co.com.pragma.api.service.UserTransactionalService;
-import co.com.pragma.model.exceptions.BusinessException;
+import co.com.pragma.model.customExceptions.BusinessException;
 import co.com.pragma.model.user.User;
 import org.junit.jupiter.api.Test;
 
-import co.com.pragma.api.dto.UserRequestDTO;
 import co.com.pragma.api.mapper.UserApiMapper;
-import co.com.pragma.model.exceptions.BusinessException;
-import co.com.pragma.model.user.User;
 import co.com.pragma.usecase.user.UserUseCase;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;

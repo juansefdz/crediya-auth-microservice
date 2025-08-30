@@ -36,10 +36,8 @@ public class RouterConfig {
                     operationId = "registrarUsuario",
                     summary = "Registrar un nuevo usuario",
                     description = "Crea un nuevo usuario en el sistema y retorna sus datos.",
-                    tags = { "Gestión de Usuarios" },
-                    parameters = {
-                            @Parameter(in = ParameterIn.PATH, name = "roleId", required = true, description = "ID del rol a asignar al nuevo usuario")
-                    },
+                    tags = { "Gestión de Usuarios" }
+                    ,
                     requestBody = @RequestBody(
                             required = true,
                             description = "Datos del usuario para el registro",
@@ -48,6 +46,7 @@ public class RouterConfig {
                     responses = {
                             @ApiResponse(responseCode = "201", description = "Usuario creado exitosamente", content = @Content(schema = @Schema(implementation = User.class))),
                             @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos (Bad Request)"),
+                            @ApiResponse(responseCode = "409", description = "El dato ingresado ya existe"),
                             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
                     }
             )

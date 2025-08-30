@@ -1,14 +1,13 @@
 package co.com.pragma.usecase;
 
-import co.com.pragma.model.exceptions.BusinessException;
-import co.com.pragma.model.exceptions.EmailAlreadyExistsException;
-import co.com.pragma.model.exceptions.InvalidSalaryException;
+import co.com.pragma.model.customExceptions.BusinessException;
+import co.com.pragma.model.customExceptions.EmailAlreadyExistsException;
+import co.com.pragma.model.customExceptions.InvalidSalaryException;
 import co.com.pragma.model.role.Role;
 import co.com.pragma.model.user.User;
 import co.com.pragma.model.role.gateways.RoleRepository;
 import co.com.pragma.model.user.gateways.UserRepository;
 import co.com.pragma.usecase.user.UserUseCase;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

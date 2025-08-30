@@ -2,8 +2,8 @@ package co.com.pragma.api;
 
 import co.com.pragma.api.dto.UserRequestDTO;
 import co.com.pragma.api.mapper.UserApiMapper;
-
 import co.com.pragma.api.service.UserTransactionalService;
+import co.com.pragma.model.customExceptions.InvalidDataException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
@@ -12,10 +12,10 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
-import org.springframework.web.server.ServerWebInputException;
 import reactor.core.publisher.Mono;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -40,12 +40,19 @@ public class Handler {
                 );
     }
 
-
     private Mono<UserRequestDTO> validateDTO(UserRequestDTO dto) {
+
         Set<ConstraintViolation<UserRequestDTO>> violations = validator.validate(dto);
+
+
         if (!violations.isEmpty()) {
-            return Mono.error(new ServerWebInputException(violations.toString()));
+            String errorMessage = violations.stream()
+                    .map(v -> v.getPropertyPath() + ": " + v.getMessage())
+                    .collect(Collectors.joining(" | "));
+
+            return Mono.error(new InvalidDataException(errorMessage));
         }
+
         return Mono.just(dto);
     }
 }

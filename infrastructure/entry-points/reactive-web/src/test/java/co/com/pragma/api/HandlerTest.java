@@ -52,7 +52,6 @@ class HandlerTest {
                 .idRol(123L)
                 .build();
 
-        // --- CAMBIO 1: Crea un objeto de dominio "User" completo y realista ---
         Role rolGuardado = Role.builder().id(123L).nombre("ADMIN").build();
         User userGuardado = User.builder()
                 .id(1L)
@@ -62,7 +61,6 @@ class HandlerTest {
                 .rol(rolGuardado)
                 .build();
 
-        // El DTO de respuesta que esperamos que el mapper REAL genere
         UserResponseDTO responseDTO = UserResponseDTO.builder()
                 .id(1L)
                 .nombre("Juan")
@@ -74,12 +72,10 @@ class HandlerTest {
         // When
         when(validator.validate(any(UserRequestDTO.class))).thenReturn(java.util.Collections.emptySet());
 
-        // El servicio mockeado ahora devuelve el objeto User completo
+
         when(userTransactionalService.registrarNuevoUsuario(any(UserRequestDTO.class), any(String.class)))
                 .thenReturn(Mono.just(userGuardado));
 
-        // --- CAMBIO 2: ELIMINA COMPLETAMENTE EL MOCK DEL MAPPER ---
-        // when(userApiMapper.toDTO(any(User.class))).thenReturn(responseDTO);
 
         // Then
         webTestClient.post()

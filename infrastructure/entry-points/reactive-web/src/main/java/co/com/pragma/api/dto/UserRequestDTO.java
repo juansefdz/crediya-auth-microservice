@@ -1,5 +1,6 @@
 package co.com.pragma.api.dto;
 
+import co.com.pragma.api.validation.DateFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -28,6 +29,7 @@ public class UserRequestDTO {
     @Schema(example = "1993-05-14")
     @NotNull(message = "La fecha de nacimiento es obligatoria")
     @Past(message = "La fecha de nacimiento debe ser en el pasado")
+    @DateFormat
     private LocalDate fechaNacimiento;
     @Schema(example = "Calle 45 #23-10, Medellín")
     @NotBlank(message = "La dirección es obligatoria")

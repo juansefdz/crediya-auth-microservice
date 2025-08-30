@@ -1,89 +1,123 @@
 package co.com.pragma.api.exceptions;
 
-
-import co.com.pragma.model.exceptions.BusinessException;
-import co.com.pragma.model.exceptions.EmailAlreadyExistsException;
-import co.com.pragma.model.exceptions.InvalidSalaryException;
-
-import co.com.pragma.api.dto.ErrorResponse;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
+import co.com.pragma.api.dto.ErrorResponseDTO;
+import co.com.pragma.model.customExceptions.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler;
+import org.springframework.core.annotation.Order;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.support.WebExchangeBindException;
+import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.ServerWebInputException;
+import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Component
+@Order(-2)
+@RequiredArgsConstructor
 @Slf4j
-@RestControllerAdvice
-public class GlobalExceptionHandler {
+public class GlobalExceptionHandler implements ErrorWebExceptionHandler {
 
-    @ExceptionHandler(EmailAlreadyExistsException.class)
-    public ResponseEntity<ErrorResponse> handleEmailAlreadyExists(EmailAlreadyExistsException ex) {
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.CONFLICT.value(),
-                "Conflicto de Datos",
-                ex.getMessage()
-        );
-        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    private final ObjectMapper objectMapper;
+    private final Map<Class<? extends Throwable>, Function<Throwable, ErrorResponseDTO>> exceptionHandlers = new HashMap<>();
+
+    @PostConstruct
+    public void init() {
+        // Registro de excepciones de negocio personalizadas
+        exceptionHandlers.put(InvalidDataException.class, ex -> buildErrorResponse(ex, HttpStatus.BAD_REQUEST, "Invalid Data"));
+        exceptionHandlers.put(EmailAlreadyExistsException.class, ex -> buildErrorResponse(ex, HttpStatus.CONFLICT, "Resource Conflict"));
+        exceptionHandlers.put(DocumentAlreadyExistsException.class, ex -> buildErrorResponse(ex, HttpStatus.CONFLICT, "Resource Conflict"));
+        exceptionHandlers.put(UserAlreadyExistsException.class, ex -> buildErrorResponse(ex, HttpStatus.CONFLICT, "Resource Conflict"));
+        exceptionHandlers.put(InvalidSalaryException.class, ex -> buildErrorResponse(ex, HttpStatus.BAD_REQUEST, "Invalid Business Rule"));
+        exceptionHandlers.put(RoleNotFoundException.class, ex -> buildErrorResponse(ex, HttpStatus.NOT_FOUND, "Resource Not Found"));
+
+        // Registro de excepciones del framework
+        exceptionHandlers.put(ServerWebInputException.class, this::handleServerWebInputException);
     }
 
-    @ExceptionHandler(InvalidSalaryException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidSalary(InvalidSalaryException ex) {
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                "Regla de Negocio Violada",
-                ex.getMessage()
-        );
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    @Override
+    public Mono<Void> handle(ServerWebExchange exchange, Throwable ex) {
+        log.error("GlobalExceptionHandler caught an error. Exception Type: {}", ex.getClass().getName(), ex);
+
+        ErrorResponseDTO errorResponse = exceptionHandlers.getOrDefault(ex.getClass(), this::defaultErrorHandler).apply(ex);
+
+        errorResponse.setPath(exchange.getRequest().getPath().value());
+
+        exchange.getResponse().setStatusCode(HttpStatus.valueOf(errorResponse.getStatus()));
+        exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+
+        DataBufferFactory bufferFactory = exchange.getResponse().bufferFactory();
+        try {
+            byte[] bytes = objectMapper.writeValueAsBytes(errorResponse);
+            DataBuffer buffer = bufferFactory.wrap(bytes);
+            return exchange.getResponse().writeWith(Mono.just(buffer));
+        } catch (JsonProcessingException e) {
+            log.error("Error writing JSON response", e);
+            return Mono.empty();
+        }
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
-        log.error("Error no controlado capturado: ", ex);
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "Error Interno del Servidor",
-                "Ocurrió un error inesperado. Por favor, contacte al soporte."
-        );
-        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    private ErrorResponseDTO handleServerWebInputException(Throwable ex) {
+        ServerWebInputException webInputEx = (ServerWebInputException) ex;
+        String message;
+
+        Throwable cause = webInputEx.getRootCause();
+        if (cause instanceof com.fasterxml.jackson.databind.exc.InvalidFormatException ifx) {
+            String fieldName = ifx.getPath().isEmpty() ? "unknown" : ifx.getPath().get(0).getFieldName();
+            message = String.format("El valor '%s' no es válido para el campo '%s'.", ifx.getValue(), fieldName);
+        }
+
+        else if (webInputEx.getCause() instanceof org.springframework.web.bind.support.WebExchangeBindException bindEx) {
+            message = bindEx.getAllErrors().stream()
+                    .map(error -> {
+                        String field = (error instanceof org.springframework.validation.FieldError fieldError)
+                                ? fieldError.getField() : error.getObjectName();
+                        return field + ": " + error.getDefaultMessage();
+                    })
+                    .collect(Collectors.joining(", "));
+        }
+        else {
+            message = "La petición tiene un formato inválido. Por favor, revise los datos enviados.";
+        }
+
+        return buildErrorResponse(message, HttpStatus.BAD_REQUEST, "Bad Request", "BAD_REQUEST");
     }
 
-    @ExceptionHandler(WebExchangeBindException.class)
-    public ResponseEntity<ErrorResponse> handleValidationExceptions(WebExchangeBindException ex) {
-        String detalles = ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .map(error -> String.format("'%s': %s", error.getField(), error.getDefaultMessage()))
-                .collect(Collectors.joining(", "));
-
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                "Error de Validación",
-                detalles
-        );
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    private ErrorResponseDTO buildErrorResponse(Throwable ex, HttpStatus status, String errorType) {
+        BusinessException bex = (BusinessException) ex;
+        return ErrorResponseDTO.builder()
+                .timestamp(LocalDateTime.now())
+                .status(status.value())
+                .code(bex.getCode())
+                .error(errorType)
+                .message(bex.getMessage())
+                .build();
     }
 
-    @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException ex) {
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                "Petición Inválida",
-                ex.getMessage()
-        );
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    private ErrorResponseDTO buildErrorResponse(String message, HttpStatus status, String errorType, String errorCode) {
+        return ErrorResponseDTO.builder()
+                .timestamp(LocalDateTime.now())
+                .status(status.value())
+                .code(errorCode)
+                .error(errorType)
+                .message(message)
+                .build();
     }
 
-    @ExceptionHandler(ServerWebInputException.class)
-    public ResponseEntity<ErrorResponse> handleServerWebInputException(ServerWebInputException ex) {
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                "Error de Validación de Entrada",
-                ex.getReason()
-        );
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    private ErrorResponseDTO defaultErrorHandler(Throwable ex) {
+        return buildErrorResponse("Ocurrió un error inesperado.", HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", "INTERNAL_ERROR");
     }
 }
