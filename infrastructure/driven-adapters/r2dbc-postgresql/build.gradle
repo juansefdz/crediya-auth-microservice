@@ -1,0 +1,17 @@
+dependencies {
+    implementation project(':model')
+    implementation 'org.springframework:spring-context'
+    implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
+    implementation 'org.postgresql:r2dbc-postgresql'
+    implementation 'org.reactivecommons.utils:object-mapper-api:0.1.0'
+    implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+    implementation 'org.springframework.security:spring-security-crypto'
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
+    runtimeOnly   'io.jsonwebtoken:jjwt-impl:0.12.5'
+    runtimeOnly   'io.jsonwebtoken:jjwt-jackson:0.12.5'
+    testImplementation 'org.reactivecommons.utils:object-mapper:0.1.0'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+    runtimeOnly 'org.postgresql:postgresql'
+
+}
+

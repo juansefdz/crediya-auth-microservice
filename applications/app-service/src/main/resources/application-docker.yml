@@ -1,0 +1,9 @@
+spring:
+  r2dbc:
+    url: r2dbc:postgresql://db:5433/crediya_db
+    username: usuario
+    password: contrasena123
+  flyway:
+    url: jdbc:postgresql://db:5433/crediya_db
+    user: usuario
+    password: contrasena123

@@ -1,0 +1,42 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: CrediYa
+
+  r2dbc:
+    # Fallback para correr desde IDE; en Docker lo sobreescriben las env vars
+    url: ${SPRING_R2DBC_URL:r2dbc:postgresql://localhost:5433/crediya_db}
+    username: ${SPRING_R2DBC_USERNAME:usuario}
+    password: ${SPRING_R2DBC_PASSWORD:contrasena123}
+    pool:
+      enabled: true
+      initial-size: 5
+      max-size: 20
+
+  flyway:
+    enabled: true
+    url: ${SPRING_FLYWAY_URL:jdbc:postgresql://localhost:5433/crediya_db}
+    user: ${SPRING_FLYWAY_USER:usuario}
+    password: ${SPRING_FLYWAY_PASSWORD:contrasena123}
+
+# Propiedades de CORS corregidas
+cors:
+  # Define los dominios que pueden consumir tu API.
+  # Usa "*" para desarrollo. Para producción, especifica los dominios: "https://dominio1.com,https://dominio2.com"
+  allowed-origins: "*"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+security:
+  jwt:
+    secret: Vna79qB2rPz6tXhE9fWcK5sJmG3dD8vA
+    expiration-seconds: 86400
