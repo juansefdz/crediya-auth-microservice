@@ -36,14 +36,11 @@ public class Handler {
     private final AuthenticateUserUseCase authenticateUserUseCase;
     private final InitialRegistrationUseCase initialRegistrationUseCase;
 
-    /**
-     * Registro inicial (bootstrap del sistema): crea un usuario con rol por defecto/admin
-     * según la política del InitialRegistrationUseCase.
-     */
+
     public Mono<ServerResponse> registroInicial(ServerRequest request) {
         return request.bodyToMono(RegistrationRequestDTO.class)
                 .flatMap(dto -> {
-                    // Validación mínima local (además de la de Bean Validation si la usas en el DTO)
+
                     if (dto.email() == null || dto.email().isBlank()) {
                         return Mono.error(new InvalidDataException("email requerido"));
                     }
@@ -70,18 +67,15 @@ public class Handler {
     }
 
     /**
-     * Registro estándar de usuario con rol explícito.
+     * Registro con rol
      */
     public Mono<ServerResponse> registrarUsuario(ServerRequest serverRequest) {
         return serverRequest.bodyToMono(UserRequestDTO.class)
                 .flatMap(this::validateDTO)
                 .flatMap(dto -> {
-                    if (dto.getPassword() == null || dto.getPassword().isBlank()) {
-                        return Mono.error(new InvalidDataException("password requerido"));
-                    }
                     var user = userApiMapper.fromDTO(dto);
                     var roleId = String.valueOf(dto.getIdRol());
-                    var plainPassword = dto.getPassword();
+                    var plainPassword = dto.getPassword(); // puede ser null o ""
                     return userUseCase.execute(user, roleId, plainPassword);
                 })
                 .flatMap(user ->
@@ -105,9 +99,8 @@ public class Handler {
                                 .bodyValue(Map.of("error", e.getMessage()))
                 );
     }
-
     /**
-     * Autenticación de usuario (login) → retorna token/claims según el use case.
+     * Autenticación de usuario (login)
      */
     public Mono<ServerResponse> autenticarUsuario(ServerRequest request) {
         return request.bodyToMono(LoginRequestDTO.class)
@@ -146,10 +139,6 @@ public class Handler {
                 );
     }
 
-    /**
-     * Validación con Bean Validation para UserRequestDTO (campos distintos a password
-     * que aquí validamos manualmente para mensajes claros).
-     */
     private Mono<UserRequestDTO> validateDTO(UserRequestDTO dto) {
         Set<ConstraintViolation<UserRequestDTO>> violations = validator.validate(dto);
         if (!violations.isEmpty()) {

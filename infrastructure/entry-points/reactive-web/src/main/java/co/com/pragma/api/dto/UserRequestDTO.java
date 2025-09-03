@@ -38,9 +38,7 @@ public class UserRequestDTO {
     @NotBlank(message = "El email es obligatorio")
     @Email(message = "El formato del email no es válido")
     private String email;
-    @Schema(example = "Contraseña123!", description = "Contraseña del usuario")
-    @NotBlank(message = "La contraseña es obligatoria")
-    @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres")
+    @Schema(example = "password123", description = "Contraseña del usuario")
     private String password;
     @Schema(example = "+57 3101234567")
     @NotBlank(message = "El teléfono es obligatorio")

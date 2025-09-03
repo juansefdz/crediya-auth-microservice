@@ -21,7 +21,6 @@ public class User {
     BigDecimal salarioBase;
 
     //jwt
-
     Boolean enabled;
 
     @With

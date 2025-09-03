@@ -28,14 +28,27 @@ public class UserRepositoryAdapter implements UserRepository {
     }
 
     @Override
+    public Mono<Boolean> existsByDocumentoIdentidadExcludingId(String documento, Long excludeId) {
+        return repository.existsByDocumentoIdentidadAndIdNot(documento, excludeId);
+    }
+
+    @Override
     public Mono<User> save(User user) {
         return repository.save(mapper.toData(user))
                 .map(mapper::toDomain);
     }
 
     @Override
+    public Mono<User> update(User user) {
+        return repository.save(mapper.toData(user))
+                .map(mapper::toDomain);
+    }
+
+
+    @Override
     public Mono<User> findByEmail(String email) {
-        return null;
+        return repository.findByEmailIgnoreCase(email)
+                .map(mapper::toDomain);
     }
 
     @Override

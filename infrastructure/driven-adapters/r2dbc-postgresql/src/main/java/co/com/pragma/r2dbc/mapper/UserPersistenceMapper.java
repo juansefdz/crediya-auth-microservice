@@ -12,19 +12,9 @@ import org.mapstruct.ReportingPolicy;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface UserPersistenceMapper {
 
+    // DOMAIN -> DATA
+            @Mapping(target = "idRol",              source = "rol.id")
 
-    @Mappings({
-            @Mapping(target = "id",                 source = "id"),
-            @Mapping(target = "nombre",             source = "nombre"),
-            @Mapping(target = "apellidos",          source = "apellidos"),
-            @Mapping(target = "documentoIdentidad", source = "documentoIdentidad"),
-            @Mapping(target = "fechaNacimiento",    source = "fechaNacimiento"),
-            @Mapping(target = "direccion",          source = "direccion"),
-            @Mapping(target = "email",              source = "email"),
-            @Mapping(target = "telefono",           source = "telefono"),
-            @Mapping(target = "salarioBase",        source = "salarioBase"),
-            @Mapping(target = "idRol",              source = "rol.id") // FK
-    })
     UserData toData(User user);
 
     // DATA -> DOMAIN (sin rol)
@@ -39,11 +29,12 @@ public interface UserPersistenceMapper {
             @Mapping(target = "email",              source = "userData.email"),
             @Mapping(target = "telefono",           source = "userData.telefono"),
             @Mapping(target = "salarioBase",        source = "userData.salarioBase"),
-            @Mapping(target = "rol",                ignore = true) // se setea aparte
+            @Mapping(target = "enabled",            source = "userData.enabled"), // 👈
+            @Mapping(target = "rol",                ignore = true)
     })
     User toDomain(UserData userData);
 
-
+    // DATA -> DOMAIN (con rol)
     @BeanMapping(ignoreByDefault = true)
     @Mappings({
             @Mapping(target = "id",                 source = "userData.id"),
@@ -55,6 +46,7 @@ public interface UserPersistenceMapper {
             @Mapping(target = "email",              source = "userData.email"),
             @Mapping(target = "telefono",           source = "userData.telefono"),
             @Mapping(target = "salarioBase",        source = "userData.salarioBase"),
+            @Mapping(target = "enabled",            source = "userData.enabled"), // 👈
             @Mapping(target = "rol",                source = "role")
     })
     User toDomain(UserData userData, Role role);

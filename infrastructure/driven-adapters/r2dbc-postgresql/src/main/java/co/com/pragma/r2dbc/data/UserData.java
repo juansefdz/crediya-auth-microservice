@@ -21,6 +21,8 @@ public class UserData {
     private String email;
     private String telefono;
     private BigDecimal salarioBase;
+    @Column("enabled")
+    private Boolean enabled;
 
     @Column("rol_id")
     private Long idRol;

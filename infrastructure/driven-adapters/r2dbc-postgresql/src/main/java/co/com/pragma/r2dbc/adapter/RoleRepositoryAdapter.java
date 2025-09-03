@@ -38,7 +38,6 @@ public class RoleRepositoryAdapter implements RoleRepository {
                 .switchIfEmpty(Flux.error(new RoleNotFoundException("Usuario " + userId + " no tiene rol")));
     }
 
-    // Si igual quieres exponer un Mono:
     public Mono<Role> getByUserId(Long userId) {
         return repository.findAllByUserId(userId)
                 .next()

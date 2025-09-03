@@ -9,7 +9,6 @@ import co.com.pragma.model.user.gateways.UserRepository;
 import co.com.pragma.usecase.auth.AuthenticateUserUseCase;
 import co.com.pragma.usecase.auth.InitialRegistrationUseCase;
 import co.com.pragma.usecase.user.UserUseCase;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -19,19 +18,13 @@ public class UseCaseConfig {
         @Bean
         public InitialRegistrationUseCase initialRegistrationUseCase(
                 UserRepository userRepository,
-                RoleRepository roleRepository,
                 PasswordEncoderGateway passwordEncoder,
-                CredentialGateway credentialGateway,
-                @Value("${app.security.admin-role-id}") Long adminRoleId,
-                @Value("${app.security.default-role-id}") Long defaultRoleId
+                CredentialGateway credentialGateway
         ) {
                 return new InitialRegistrationUseCase(
                         userRepository,
-                        roleRepository,
                         passwordEncoder,
-                        credentialGateway,
-                        adminRoleId,
-                        defaultRoleId
+                        credentialGateway
                 );
         }
 
