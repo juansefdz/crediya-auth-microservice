@@ -40,3 +40,7 @@ security:
   jwt:
     secret: Vna79qB2rPz6tXhE9fWcK5sJmG3dD8vA
     expiration-seconds: 86400
+app:
+  security:
+    admin-role-id: 1 # ADMIN
+    default-role-id: 2 #CLIENTE

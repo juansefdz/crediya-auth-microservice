@@ -4,7 +4,6 @@ import co.com.pragma.api.config.RouterConfig;
 import co.com.pragma.api.dto.UserRequestDTO;
 import co.com.pragma.api.dto.UserResponseDTO;
 import co.com.pragma.api.mapper.UserApiMapper;
-import co.com.pragma.api.service.UserTransactionalService;
 import co.com.pragma.model.role.Role;
 import co.com.pragma.model.user.User;
 import org.junit.jupiter.api.Test;

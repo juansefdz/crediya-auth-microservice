@@ -21,9 +21,11 @@ public class User {
     BigDecimal salarioBase;
 
     //jwt
-    String passwordHash;
+
     Boolean enabled;
 
     @With
     Role rol;
+    @With
+    String passwordHash;
 }

@@ -18,7 +18,7 @@ public class AuthRepositoryAdapter implements AuthGateway {
         return db.sql("""
                 SELECT u.id, u.email, u.enabled, c.password_hash
                 FROM usuarios u
-                JOIN credenciales c ON c.usuario_id = u.id
+                JOIN credentials c ON c.usuario_id = u.id
                 WHERE LOWER(u.email) = LOWER(:email)
                 LIMIT 1
                 """)

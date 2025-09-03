@@ -17,11 +17,8 @@ public class RoleRepositoryAdapter implements RoleRepository {
     private final RolePersistenceMapper mapper;
 
     @Override
-    public Mono<Role> findById(String id) {
-        return Mono.fromCallable(() -> Long.valueOf(id))
-                .onErrorResume(NumberFormatException.class,
-                        e -> Mono.error(new IllegalArgumentException("id de rol inválido: " + id)))
-                .flatMap(repository::findById)
+    public Mono<Role> findById(Long id) {
+        return repository.findById(id)
                 .switchIfEmpty(Mono.error(new RoleNotFoundException("No existe rol con id=" + id)))
                 .map(mapper::toDomain);
     }

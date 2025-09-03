@@ -7,13 +7,18 @@ import co.com.pragma.api.dto.UserRequestDTO;
 import co.com.pragma.model.user.User;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
-public interface UserApiMapper  {
+import co.com.pragma.api.dto.UserResponseDTO;
+import co.com.pragma.model.user.User;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-    @Mapping(target = "id", ignore = true)
+@Mapper(componentModel = "spring")
+public interface UserApiMapper {
+
     @Mapping(target = "rol", ignore = true)
     User fromDTO(UserRequestDTO dto);
 
-    @Mapping(target = "nombreRol", source = "user.rol.nombre")
+
+    @Mapping(target = "nombreRol", source = "rol.nombre")
     UserResponseDTO toDTO(User user);
 }

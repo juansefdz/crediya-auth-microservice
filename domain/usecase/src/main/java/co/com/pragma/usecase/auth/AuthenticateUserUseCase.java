@@ -1,11 +1,11 @@
 package co.com.pragma.usecase.auth;
 
 import co.com.pragma.model.auth.AuthToken;
-import co.com.pragma.model.auth.Credentials;
+import co.com.pragma.model.auth.LoginCommand;
 import co.com.pragma.model.auth.gateways.AuthGateway;
-import co.com.pragma.model.user.User;
 import co.com.pragma.model.auth.gateways.JwtProviderGateway;
 import co.com.pragma.model.auth.gateways.PasswordEncoderGateway;
+import co.com.pragma.model.user.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -18,14 +18,14 @@ public class AuthenticateUserUseCase {
     private final PasswordEncoderGateway passwordEncoder;
     private final JwtProviderGateway jwtProvider;
 
-    public Mono<AuthToken> execute(Credentials credentials) {
-        final String normalizedEmail = normalize(credentials.email());
+    public Mono<AuthToken> execute(LoginCommand login) {
+        final String normalizedEmail = normalize(login.getEmail());
 
         log.info("AuthUseCase - intento de login email={}", normalizedEmail);
 
         return authGateway.findByEmail(normalizedEmail)
                 .switchIfEmpty(Mono.error(new InvalidCredentialsException()))
-                .flatMap(user -> validatePassword(credentials.password(), user)
+                .flatMap(user -> validatePassword(login.getPassword(), user)
                         .flatMap(u -> jwtProvider.generateAccessToken(u)
                                 .map(token -> AuthToken.builder()
                                         .token(token)
@@ -44,21 +44,15 @@ public class AuthenticateUserUseCase {
         if (Boolean.FALSE.equals(user.getEnabled())) {
             return Mono.error(new UserDisabledException());
         }
-
         return passwordEncoder.matches(raw, user.getPasswordHash())
-                .flatMap(isValid -> {
-                    if (Boolean.TRUE.equals(isValid)) {
-                        return Mono.just(user);
-                    } else {
-                        return Mono.error(new InvalidCredentialsException());
-                    }
-                });
+                .filter(Boolean::booleanValue)
+                .map(ok -> user)
+                .switchIfEmpty(Mono.error(new InvalidCredentialsException()));
     }
 
     private String normalize(String email) {
         return email == null ? null : email.trim().toLowerCase();
     }
-
 
     public static class InvalidCredentialsException extends RuntimeException {
         public InvalidCredentialsException() { super("Usuario o contraseña inválidos"); }

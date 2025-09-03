@@ -23,11 +23,6 @@ public class UserRepositoryAdapter implements UserRepository {
     }
 
     @Override
-    public Mono<Boolean> existsByEmailIgnoreCase(String email) {
-        return null;
-    }
-
-    @Override
     public Mono<Boolean> existsByDocumentoIdentidad(String documento) {
         return repository.existsByDocumentoIdentidad(documento);
     }
@@ -41,5 +36,10 @@ public class UserRepositoryAdapter implements UserRepository {
     @Override
     public Mono<User> findByEmail(String email) {
         return null;
+    }
+
+    @Override
+    public Mono<Long> count() {
+        return repository.count();
     }
 }

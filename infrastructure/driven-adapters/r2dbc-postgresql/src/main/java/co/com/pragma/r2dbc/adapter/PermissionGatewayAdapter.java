@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
-@Component // <-- ¡Muy importante! Esto lo convierte en un bean de Spring.
+@Component
 @RequiredArgsConstructor
 public class PermissionGatewayAdapter implements PermissionGateway {
 

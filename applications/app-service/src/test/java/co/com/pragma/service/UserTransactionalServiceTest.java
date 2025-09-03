@@ -1,7 +1,6 @@
 package co.com.pragma.service;
 
 import co.com.pragma.api.dto.UserRequestDTO;
-import co.com.pragma.api.service.UserTransactionalService;
 import co.com.pragma.model.customExceptions.BusinessException;
 import co.com.pragma.model.user.User;
 import org.junit.jupiter.api.Test;
