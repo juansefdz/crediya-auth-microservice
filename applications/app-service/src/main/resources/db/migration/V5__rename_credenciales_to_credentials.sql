@@ -1,0 +1,1 @@
+ALTER TABLE IF EXISTS credenciales RENAME TO credentials;
